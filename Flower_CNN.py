@@ -1,237 +1,94 @@
-{
-  "nbformat": 4,
-  "nbformat_minor": 0,
-  "metadata": {
-    "colab": {
-      "provenance": [],
-      "authorship_tag": "ABX9TyNvZpWlcNxxCNW0L6JTcjCZ",
-      "include_colab_link": true
-    },
-    "kernelspec": {
-      "name": "python3",
-      "display_name": "Python 3"
-    },
-    "language_info": {
-      "name": "python"
-    }
-  },
-  "cells": [
-    {
-      "cell_type": "markdown",
-      "metadata": {
-        "id": "view-in-github",
-        "colab_type": "text"
-      },
-      "source": [
-        "<a href=\"https://colab.research.google.com/github/marina554/Machine-Learning-Practice/blob/main/Flower_CNN.py\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "execution_count": null,
-      "metadata": {
-        "id": "p3bh1P4Ur0G7"
-      },
-      "outputs": [],
-      "source": [
-        "import os\n",
-        "from tensorflow.keras.preprocessing.image import ImageDataGenerator\n",
-        "from tensorflow.keras.models import Sequential\n",
-        "from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout\n",
-        "import matplotlib.pyplot as plt\n",
-        "\n",
-        "# --- Data folder ---\n",
-        "# Folder structure: FlowerImages/class_name/images\n",
-        "base_dir = \"FlowerImages\"\n",
-        "\n",
-        "# --- Data preprocessing (augmentation + normalization) ---\n",
-        "train_datagen = ImageDataGenerator(\n",
-        "    rescale=1./255,\n",
-        "    rotation_range=20,        # Random rotation\n",
-        "    width_shift_range=0.1,    # Horizontal shift\n",
-        "    height_shift_range=0.1,   # Vertical shift\n",
-        "    shear_range=0.1,          # Shear transformation\n",
-        "    zoom_range=0.1,           # Zoom\n",
-        "    horizontal_flip=True,     # Horizontal flip\n",
-        "    validation_split=0.2      # Use 20% of the data for validation\n",
-        ")\n",
-        "\n",
-        "# Validation generator (no augmentation)\n",
-        "valid_datagen = ImageDataGenerator(\n",
-        "    rescale=1./255,\n",
-        "    validation_split=0.2\n",
-        ")\n",
-        "\n",
-        "# Training data\n",
-        "train_generator = train_datagen.flow_from_directory(\n",
-        "    base_dir,\n",
-        "    target_size=(150,150),\n",
-        "    batch_size=16,\n",
-        "    class_mode='categorical',\n",
-        "    shuffle=True,\n",
-        "    subset='training'  # Use as training data\n",
-        ")\n",
-        "\n",
-        "# Validation data\n",
-        "valid_generator = valid_datagen.flow_from_directory(\n",
-        "    base_dir,\n",
-        "    target_size=(150,150),\n",
-        "    batch_size=16,\n",
-        "    class_mode='categorical',\n",
-        "    shuffle=False,\n",
-        "    subset='validation'  # Use as validation data\n",
-        ")\n",
-        "\n",
-        "# --- CNN model ---\n",
-        "model = Sequential([\n",
-        "    Conv2D(32, (3,3), activation='relu', input_shape=(150,150,3)),\n",
-        "    MaxPooling2D(2,2),\n",
-        "    Conv2D(64, (3,3), activation='relu'),\n",
-        "    MaxPooling2D(2,2),\n",
-        "    Flatten(),\n",
-        "    Dense(64, activation='relu'),\n",
-        "    Dropout(0.5),\n",
-        "    Dense(train_generator.num_classes, activation='softmax')\n",
-        "])\n",
-        "\n",
-        "# --- Compile ---\n",
-        "model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])\n",
-        "\n",
-        "# --- Train ---\n",
-        "history = model.fit(\n",
-        "    train_generator,\n",
-        "    steps_per_epoch=len(train_generator),\n",
-        "    validation_data=valid_generator,\n",
-        "    validation_steps=len(valid_generator),\n",
-        "    epochs=10\n",
-        ")\n",
-        "\n",
-        "print(\"Training completed!\")\n",
-        "\n",
-        "# --- Plot training curves ---\n",
-        "plt.figure(figsize=(8,4))\n",
-        "plt.plot(history.history['accuracy'], label='train_accuracy')\n",
-        "plt.plot(history.history['val_accuracy'], label='valid_accuracy')\n",
-        "plt.title('Training & Validation Accuracy')\n",
-        "plt.xlabel('Epoch')\n",
-        "plt.ylabel('Accuracy')\n",
-        "plt.legend()\n",
-        "plt.grid(True)\n",
-        "plt.show()\n",
-        "\n",
-        "plt.figure(figsize=(8,4))\n",
-        "plt.plot(history.history['loss'], label='train_loss')\n",
-        "plt.plot(history.history['val_loss'], label='valid_loss')\n",
-        "plt.title('Training & Validation Loss')\n",
-        "plt.xlabel('Epoch')\n",
-        "plt.ylabel('Loss')\n",
-        "plt.legend()\n",
-        "plt.grid(True)\n",
-        "plt.show()"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "import os\n",
-        "from tensorflow.keras.preprocessing.image import ImageDataGenerator\n",
-        "from tensorflow.keras.models import Sequential\n",
-        "from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout\n",
-        "import matplotlib.pyplot as plt\n",
-        "\n",
-        "# --- データフォルダ ---\n",
-        "base_dir = \"FlowerImages\"  # フォルダ構成：FlowerImages/クラス名/画像\n",
-        "\n",
-        "# --- データ前処理（データ拡張 + 正規化） ---\n",
-        "train_datagen = ImageDataGenerator(\n",
-        "    rescale=1./255,\n",
-        "    rotation_range=20,        # ランダム回転\n",
-        "    width_shift_range=0.1,    # 横方向へ平行移動\n",
-        "    height_shift_range=0.1,   # 縦方向へ平行移動\n",
-        "    shear_range=0.1,          # シアー変換\n",
-        "    zoom_range=0.1,           # ズーム\n",
-        "    horizontal_flip=True,     # 水平方向反転\n",
-        "    validation_split=0.2      # 訓練データの20%を検証に使用\n",
-        ")\n",
-        "\n",
-        "# --- 検証用ジェネレータ（データ拡張はしない） ---\n",
-        "valid_datagen = ImageDataGenerator(\n",
-        "    rescale=1./255,\n",
-        "    validation_split=0.2\n",
-        ")\n",
-        "\n",
-        "# 訓練データ\n",
-        "train_generator = train_datagen.flow_from_directory(\n",
-        "    base_dir,\n",
-        "    target_size=(150,150),\n",
-        "    batch_size=16,\n",
-        "    class_mode='categorical',\n",
-        "    shuffle=True,\n",
-        "    subset='training'  # 訓練用として使用\n",
-        ")\n",
-        "\n",
-        "# 検証データ\n",
-        "valid_generator = valid_datagen.flow_from_directory(\n",
-        "    base_dir,\n",
-        "    target_size=(150,150),\n",
-        "    batch_size=16,\n",
-        "    class_mode='categorical',\n",
-        "    shuffle=False,\n",
-        "    subset='validation'  # 検証用として使用\n",
-        ")\n",
-        "\n",
-        "# --- CNNモデル ---\n",
-        "model = Sequential([\n",
-        "    Conv2D(32, (3,3), activation='relu', input_shape=(150,150,3)),\n",
-        "    MaxPooling2D(2,2),\n",
-        "    Conv2D(64, (3,3), activation='relu'),\n",
-        "    MaxPooling2D(2,2),\n",
-        "    Flatten(),\n",
-        "    Dense(64, activation='relu'),\n",
-        "    Dropout(0.5),\n",
-        "    Dense(train_generator.num_classes, activation='softmax')\n",
-        "])\n",
-        "\n",
-        "# --- コンパイル ---\n",
-        "model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])\n",
-        "\n",
-        "# --- モデルの学習 ---\n",
-        "history = model.fit(\n",
-        "    train_generator,\n",
-        "    steps_per_epoch=len(train_generator),\n",
-        "    validation_data=valid_generator,\n",
-        "    validation_steps=len(valid_generator),\n",
-        "    epochs=10\n",
-        ")\n",
-        "\n",
-        "print(\"Training completed!\")\n",
-        "\n",
-        "# --- 精度と損失のプロット ---\n",
-        "plt.figure(figsize=(8,4))\n",
-        "plt.plot(history.history['accuracy'], label='train_accuracy')\n",
-        "plt.plot(history.history['val_accuracy'], label='valid_accuracy')\n",
-        "plt.title('Training & Validation Accuracy')\n",
-        "plt.xlabel('Epoch')\n",
-        "plt.ylabel('Accuracy')\n",
-        "plt.legend()\n",
-        "plt.grid(True)\n",
-        "plt.show()\n",
-        "\n",
-        "plt.figure(figsize=(8,4))\n",
-        "plt.plot(history.history['loss'], label='train_loss')\n",
-        "plt.plot(history.history['val_loss'], label='valid_loss')\n",
-        "plt.title('Training & Validation Loss')\n",
-        "plt.xlabel('Epoch')\n",
-        "plt.ylabel('Loss')\n",
-        "plt.legend()\n",
-        "plt.grid(True)\n",
-        "plt.show()\n"
-      ],
-      "metadata": {
-        "id": "usyeGCM5sB1E"
-      },
-      "execution_count": null,
-      "outputs": []
-    }
-  ]
-}
+import os
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+import matplotlib.pyplot as plt
+
+# --- Data folder ---
+# Folder structure: FlowerImages/class_name/images
+base_dir = "FlowerImages"
+
+# --- Data preprocessing (augmentation + normalization) ---
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=20,        # Random rotation
+    width_shift_range=0.1,    # Horizontal shift
+    height_shift_range=0.1,   # Vertical shift
+    shear_range=0.1,          # Shear transformation
+    zoom_range=0.1,           # Zoom
+    horizontal_flip=True,     # Horizontal flip
+    validation_split=0.2      # Use 20% of the data for validation
+)
+
+# Validation generator (no augmentation)
+valid_datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2
+)
+
+# Training data
+train_generator = train_datagen.flow_from_directory(
+    base_dir,
+    target_size=(150,150),
+    batch_size=16,
+    class_mode='categorical',
+    shuffle=True,
+    subset='training'  # Use as training data
+)
+
+# Validation data
+valid_generator = valid_datagen.flow_from_directory(
+    base_dir,
+    target_size=(150,150),
+    batch_size=16,
+    class_mode='categorical',
+    shuffle=False,
+    subset='validation'  # Use as validation data
+)
+
+# --- CNN model ---
+model = Sequential([
+    Conv2D(32, (3,3), activation='relu', input_shape=(150,150,3)),
+    MaxPooling2D(2,2),
+    Conv2D(64, (3,3), activation='relu'),
+    MaxPooling2D(2,2),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dropout(0.5),
+    Dense(train_generator.num_classes, activation='softmax')
+])
+
+# --- Compile ---
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# --- Train ---
+history = model.fit(
+    train_generator,
+    steps_per_epoch=len(train_generator),
+    validation_data=valid_generator,
+    validation_steps=len(valid_generator),
+    epochs=10
+)
+
+print("Training completed!")
+
+# --- Plot training curves ---
+plt.figure(figsize=(8,4))
+plt.plot(history.history['accuracy'], label='train_accuracy')
+plt.plot(history.history['val_accuracy'], label='valid_accuracy')
+plt.title('Training & Validation Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8,4))
+plt.plot(history.history['loss'], label='train_loss')
+plt.plot(history.history['val_loss'], label='valid_loss')
+plt.title('Training & Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True)
+plt.show()
