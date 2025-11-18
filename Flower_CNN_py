@@ -7,6 +7,8 @@ Original file is located at
     https://colab.research.google.com/drive/1Tm4Xjd9Ynuvf3MpCjw4uGLRwewE3lyUe
 """
 
+-----------------Japanese ver--------------------
+
 import os
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
